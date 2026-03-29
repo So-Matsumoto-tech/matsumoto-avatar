@@ -119,7 +119,7 @@ async def tts(req: TTSRequest):
             },
         )
         if response.status_code != 200:
-            raise HTTPException(status_code=500, detail="ElevenLabs API error")
+            raise HTTPException(status_code=500, detail=f"ElevenLabs API error: {response.status_code} {response.text}")
         audio_bytes = response.content
         import base64
         audio_b64 = base64.b64encode(audio_bytes).decode()

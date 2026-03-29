@@ -332,6 +332,19 @@
 const API_BASE = window.location.origin;
 let isProcessing = false;
 
+// Chromeの自動再生ポリシーを解除するためのAudioContext
+let audioCtx = null;
+function unlockAudio() {
+  if (audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  // 無音を再生してブラウザの自動再生ロックを解除
+  const buf = audioCtx.createBuffer(1, 1, 22050);
+  const src = audioCtx.createBufferSource();
+  src.buffer = buf;
+  src.connect(audioCtx.destination);
+  src.start(0);
+}
+
 function setStatus(state) {
   const dot = document.getElementById('status-dot');
   const txt = document.getElementById('status-text');
@@ -401,9 +414,14 @@ async function playVideo(videoUrl) {
   return new Promise((resolve) => {
     showAvatar(videoUrl);
     const video = document.getElementById('avatar-video');
+    video.muted = false;
     video.onended = () => { hideAvatar(); resolve(); };
     video.onerror = () => { hideAvatar(); resolve(); };
-    video.play().catch(() => { hideAvatar(); resolve(); });
+    // まずミュートで再生してから音声をONにする（自動再生ポリシー対策）
+    video.muted = true;
+    video.play().then(() => {
+      video.muted = false;
+    }).catch(() => { hideAvatar(); resolve(); });
   });
 }
 
@@ -412,6 +430,8 @@ async function sendMessage() {
   const input = document.getElementById('input');
   const text = input.value.trim();
   if (!text) return;
+
+  unlockAudio(); // ユーザー操作のタイミングで音声ロックを解除
 
   isProcessing = true;
   document.getElementById('send-btn').disabled = true;

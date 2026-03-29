@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s http://localhost:8002/)",
+      "Bash(curl -s -X POST http://localhost:8002/api/speak -H \"Content-Type: application/json\" -d '{\"\"\"\"message\"\"\"\":\"\"\"\"テスト\"\"\"\"}')",
+      "Bash(curl -s -X POST http://localhost:8002/api/speak -H \"Content-Type: application/json\" -d '{\"\"\"\"message\"\"\"\":\"\"\"\"こんにちは\"\"\"\"}')",
+      "Bash(curl -sv -X POST http://localhost:8002/api/speak -H \"Content-Type: application/json\" -d '{\"\"\"\"message\"\"\"\":\"\"\"\"こんにちは\"\"\"\"}')",
+      "Bash(curl -sv -X POST http://localhost:8002/api/speak -H \"Content-Type: application/json\" -d '{\"\"\"\"message\"\"\"\":\"\"\"\"こんにちは\"\"\"\"}' --max-time 120)",
+      "Bash(gh auth:*)"
+    ]
+  }
+}

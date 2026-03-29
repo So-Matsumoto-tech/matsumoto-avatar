@@ -204,15 +204,12 @@ async def speak(req: ChatRequest):
     chat_res = await chat(req)
     text = chat_res["text"]
 
-    tts_res = await tts(TTSRequest(text=text))
-    audio_b64 = tts_res["audio_b64"]
-
-    # D-IDで動画生成（失敗してもフォールバックでElevenLabs音声再生）
+    # D-IDで動画生成（動画に音声も含まれる）
     video_url = await create_did_talk(text)
 
     return {
         "text": text,
-        "audio_b64": audio_b64,
+        "audio_b64": "",
         "content_type": "audio/mpeg",
         "video_url": video_url,
     }

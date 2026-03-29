@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>松本壮 AIアバター</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -267,6 +268,25 @@
   button#send-btn:active { transform: scale(.97); }
   button#send-btn:disabled { background: var(--accent-dim); cursor: not-allowed; }
 
+  button#mic-btn {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 10px;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 18px;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .2s, color .2s, transform .1s;
+    flex-shrink: 0;
+  }
+  button#mic-btn:hover { background: var(--accent-dim); color: var(--accent); }
+  button#mic-btn.recording { background: #3a1a1a; border-color: #aa4040; color: #dd6060; animation: pulse .8s ease-in-out infinite; }
+  button#mic-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
   /* レスポンシブ */
   @media (max-width: 680px) {
     .main { grid-template-columns: 1fr; }
@@ -318,10 +338,11 @@
     <div class="input-area">
       <textarea
         id="input"
-        placeholder="松本さんに話しかける..."
+        placeholder="松本さんに話しかける... (Shift+Enterで送信)"
         rows="1"
         onkeydown="handleKey(event)"
       ></textarea>
+      <button id="mic-btn" onclick="toggleMic()" title="音声入力">🎤</button>
       <button id="send-btn" onclick="sendMessage()">送信</button>
     </div>
   </div>
@@ -473,7 +494,52 @@ async function sendMessage() {
 }
 
 function handleKey(e) {
-  // Enterキーでは送信しない（送信ボタンのみ）
+  // Shift+Enterで送信
+  if (e.key === 'Enter' && e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+// 音声入力
+let recognition = null;
+let isRecording = false;
+
+function toggleMic() {
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    alert('このブラウザは音声入力に対応していません。Chromeをお使いください。');
+    return;
+  }
+  if (isRecording) {
+    recognition.stop();
+    return;
+  }
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SpeechRecognition();
+  recognition.lang = 'ja-JP';
+  recognition.continuous = false;
+  recognition.interimResults = false;
+
+  recognition.onstart = () => {
+    isRecording = true;
+    document.getElementById('mic-btn').classList.add('recording');
+    document.getElementById('mic-btn').textContent = '⏹';
+  };
+  recognition.onresult = (e) => {
+    const transcript = e.results[0][0].transcript;
+    document.getElementById('input').value = transcript;
+  };
+  recognition.onend = () => {
+    isRecording = false;
+    document.getElementById('mic-btn').classList.remove('recording');
+    document.getElementById('mic-btn').textContent = '🎤';
+  };
+  recognition.onerror = () => {
+    isRecording = false;
+    document.getElementById('mic-btn').classList.remove('recording');
+    document.getElementById('mic-btn').textContent = '🎤';
+  };
+  recognition.start();
 }
 
 const ta = document.getElementById('input');

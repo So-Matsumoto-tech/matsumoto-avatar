@@ -478,7 +478,7 @@ async function sendMessage() {
     setStatus('speaking');
     if (data.video_url) {
       await playVideo(data.video_url);
-    } else {
+    } else if (data.audio_b64) {
       await playAudio(data.audio_b64, data.content_type);
     }
     setStatus('idle');
